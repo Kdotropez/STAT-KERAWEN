@@ -1,0 +1,16 @@
+# Ne pas ignorer les fichiers nécessaires
+!public/
+!public/index.html
+!public/manifest.json
+!public/robots.txt
+!public/favicon.ico
+
+# Ignorer les fichiers de développement
+node_modules/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
