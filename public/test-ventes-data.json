@@ -1,0 +1,9 @@
+{
+  "headers": ["Date", "Boutique", "ID", "Produit", "Quantité", "Prix TTC", "Montant TTC"],
+  "data": [
+    ["27/08/2025", "Saint Tropez", "7788", "TRIO WHITE VN PORT GRIMAUD/TROPEZ", 1, 25.00, 25.00],
+    ["27/08/2025", "Saint Tropez", "7507", "VN BLANC PORT GRIMAUD", 2, 7.50, 15.00],
+    ["27/08/2025", "Port Grimaud", "5851", "VN BLANC TROPEZ", 1, 7.50, 7.50],
+    ["27/08/2025", "Cannes", "1234", "AUTRE PRODUIT", 1, 4.00, 4.00]
+  ]
+}
