@@ -43,6 +43,7 @@ import CompositionNameFixerComponent from './components/CompositionNameFixerComp
 import UnclassifiedProductsManagerComponent from './components/UnclassifiedProductsManager';
 import { MonthlyMergeInterface } from './components/MonthlyMergeInterface';
 import Login from './components/Auth/Login';
+import CategorieAnalyzer from './components/Debug/CategorieAnalyzer';
 
 
 
@@ -275,9 +276,9 @@ function App() {
         console.log('🔍 Ventes avec compositions trouvées:', ventesAvecCompositions.map(v => ({ id: v.id, nom: v.nom })));
         console.log('🔍 Nombre de compositions trouvées:', compositionsTrouvees);
         
-                 const ventesDecomposees = await compositionService.decomposerVentes(nouvellesVentes);
-         decompositionsAjoutees = ventesDecomposees.length - nouvellesVentes.length;
-         ventesFinales = ventesDecomposees;
+                 const resultatDecomposition = await compositionService.decomposerVentes(nouvellesVentes);
+         decompositionsAjoutees = resultatDecomposition.composantsAjoutes;
+         ventesFinales = resultatDecomposition.ventes;
         
         console.log(`✅ Décomposition terminée: ${nouvellesVentes.length} lignes originales → ${ventesFinales.length} lignes totales (+${decompositionsAjoutees} composants ajoutés)`);
       }
@@ -668,6 +669,7 @@ function App() {
 
             <TabPanel value={tabValue} index={4}>
               <ProduitInfo referenceService={referenceService} />
+              <CategorieAnalyzer ventes={ventesDecomposees.length > 0 ? ventesDecomposees : ventes} />
             </TabPanel>
 
                          <TabPanel value={tabValue} index={5}>

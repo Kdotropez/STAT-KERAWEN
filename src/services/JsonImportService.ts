@@ -100,8 +100,9 @@ export class JsonImportService {
 
       // DÉCOMPOSER les ventes avec le CompositionService
       console.log('🔄 Décomposition des ventes composées...');
-      const ventesDecomposees = await this.compositionService.decomposerVentes(ventesOriginales);
-      console.log(`📊 ${ventesDecomposees.length} ventes après décomposition`);
+      const resultatDecomposition = await this.compositionService.decomposerVentes(ventesOriginales);
+      const ventesDecomposees = resultatDecomposition.ventes;
+      console.log(`📊 ${ventesDecomposees.length} ventes après décomposition (+${resultatDecomposition.composantsAjoutes} composants ajoutés)`);
 
       // Calculer les statistiques sur les ventes DÉCOMPOSÉES
       const stats = this.calculerStatistiques(ventesOriginales, ventesDecomposees);
@@ -111,7 +112,7 @@ export class JsonImportService {
         ventesOriginales,
         ventesDecomposees,
         stats,
-        message: `Import réussi : ${ventesOriginales.length} ventes originales → ${ventesDecomposees.length} ventes après décomposition`
+        message: `Import réussi : ${ventesOriginales.length} ventes originales → ${ventesDecomposees.length} ventes après décomposition (+${resultatDecomposition.composantsAjoutes} composants ajoutés)`
       };
 
     } catch (error) {

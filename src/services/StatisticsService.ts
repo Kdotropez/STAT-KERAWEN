@@ -156,10 +156,10 @@ export class StatisticsService {
       const compositionService = new CompositionService();
       await compositionService.chargerCompositions();
       
-      const ventesDecomposees = await compositionService.decomposerVentes(ventesAAnalyser);
-      ventesAAnalyser = ventesDecomposees;
+      const resultatDecomposition = await compositionService.decomposerVentes(ventesAAnalyser);
+      ventesAAnalyser = resultatDecomposition.ventes;
       
-      console.log(`🔍 Décomposition effectuée: ${ventesAAnalyser.length} lignes après décomposition`);
+      console.log(`🔍 Décomposition effectuée: ${ventesAAnalyser.length} lignes après décomposition (+${resultatDecomposition.composantsAjoutes} composants ajoutés)`);
     } catch (error) {
       console.warn('⚠️ Impossible de décomposer les compositions, utilisation des ventes originales:', error);
     }

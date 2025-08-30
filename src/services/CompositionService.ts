@@ -303,12 +303,12 @@ export class CompositionService {
   }
 
   // Décomposer toutes les ventes d'un fichier avec cumul des quantités
-  async decomposerVentes(ventes: VenteLigne[]): Promise<VenteLigne[]> {
+  async decomposerVentes(ventes: VenteLigne[]): Promise<{ ventes: VenteLigne[], composantsAjoutes: number }> {
     const resultat: VenteLigne[] = [];
 
     if (!ventes || !Array.isArray(ventes)) {
       console.warn('⚠️ Ventes invalides pour la décomposition:', ventes);
-      return resultat;
+      return { ventes: resultat, composantsAjoutes: 0 };
     }
 
     console.log(`🔍 DEBUG: Début de la décomposition avec ${ventes.length} lignes`);
@@ -512,7 +512,7 @@ export class CompositionService {
     }
 
     console.log(`✅ Décomposition terminée: ${ventes.length} lignes originales → ${resultat.length} lignes totales (+${composantsAjoutes} composants ajoutés)`);
-    return resultat;
+    return { ventes: resultat, composantsAjoutes };
   }
 
   // Ajouter une nouvelle composition

@@ -97,10 +97,11 @@ const DecompositionTest: React.FC = () => {
       console.log('📊 Ventes originales:', ventesOriginales);
       
       // Effectuer la décomposition
-      const decomposees = await compositionService.decomposerVentes(ventesOriginales);
+      const resultatDecomposition = await compositionService.decomposerVentes(ventesOriginales);
       
-      setVentesDecomposees(decomposees);
-      console.log('✅ Décomposition terminée:', decomposees);
+      setVentesDecomposees(resultatDecomposition.ventes);
+      console.log('✅ Décomposition terminée:', resultatDecomposition.ventes);
+      console.log('📊 Composants ajoutés:', resultatDecomposition.composantsAjoutes);
       
     } catch (err) {
       console.error('❌ Erreur lors de la décomposition:', err);
