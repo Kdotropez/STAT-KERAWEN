@@ -2,12 +2,10 @@
   "version": 2,
   "builds": [
     {
-      "src": "build.sh",
+      "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "build",
-        "installCommand": "npm install",
-        "buildCommand": "bash build.sh"
+        "distDir": "build"
       }
     }
   ],
@@ -29,26 +27,7 @@
       "dest": "/index.html"
     }
   ],
-  "headers": [
-    {
-      "source": "/static/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    }
-  ],
-  "functions": {},
   "env": {
-    "SKIP_PREFLIGHT_CHECK": "true",
-    "CI": "false"
-  },
-  "build": {
-    "env": {
-      "SKIP_PREFLIGHT_CHECK": "true",
-      "CI": "false"
-    }
+    "SKIP_PREFLIGHT_CHECK": "true"
   }
 }
