@@ -293,7 +293,7 @@ function App() {
       };
       
       console.log('📊 Définition des statistiques:', statsImportData);
-      setStatsImport(statsImportData);
+      // setStatsImport(statsImportData);
       console.log('✅ Statistiques définies dans l\'état');
 
              setVentes(prev => [...prev, ...ventesFinales]);
@@ -357,12 +357,12 @@ function App() {
   const handleJsonImportComplete = (result: ImportResult) => {
     setVentesJsonImportees(result.ventesOriginales);
     setVentesDecomposees(result.ventesDecomposees); // Utiliser les ventes décomposées
-    setStatsImport({
-      lignesOriginales: result.stats?.lignesImportees || 0,
-      lignesFinales: result.stats?.lignesTraitees || 0,
-      composantsAjoutes: result.stats?.composantsAjoutes || 0,
-      compositionsTrouvees: result.stats?.compositionsTrouvees || 0
-    });
+    // setStatsImport({
+    //   lignesOriginales: result.stats?.lignesImportees || 0,
+    //   lignesFinales: result.stats?.lignesTraitees || 0,
+    //   composantsAjoutes: result.stats?.composantsAjoutes || 0,
+    //   compositionsTrouvees: result.stats?.compositionsTrouvees || 0
+    // });
     
     setNotification({
       message: result.message,
@@ -371,7 +371,7 @@ function App() {
   };
 
   const handleMergeComplete = (result: MergeResult) => {
-    setMergeResult(result);
+    // setMergeResult(result);
     setNotification({
       message: result.message,
       type: result.success ? 'success' : 'error'
