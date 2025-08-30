@@ -42,6 +42,7 @@ import CompositionDebug from './components/CompositionManager/CompositionDebug';
 import CompositionNameFixerComponent from './components/CompositionNameFixerComponent';
 import UnclassifiedProductsManagerComponent from './components/UnclassifiedProductsManager';
 import { MonthlyMergeInterface } from './components/MonthlyMergeInterface';
+import Login from './components/Auth/Login';
 
 
 
@@ -94,6 +95,10 @@ function TabPanel(props: TabPanelProps) {
 }
 
 function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return localStorage.getItem('isAuthenticated') === 'true';
+  });
+  
   const [tabValue, setTabValue] = useState(0);
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
   const [ventes, setVentes] = useState<VenteLigne[]>([]);
@@ -378,6 +383,15 @@ function App() {
     });
   };
 
+  const handleLogin = (password: string) => {
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    setIsAuthenticated(false);
+  };
+
   const handleSaveMapping = (mapping: MappingColonnes, name: string) => {
     const newMappings = [...savedMappings, { name, mapping }];
     setSavedMappings(newMappings);
@@ -398,6 +412,16 @@ function App() {
     setNotification(null);
   };
 
+  // Si non authentifié, afficher la page de connexion
+  if (!isAuthenticated) {
+    return (
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Login onLogin={handleLogin} />
+      </ThemeProvider>
+    );
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -407,6 +431,14 @@ function App() {
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Statistiques de Produits Vendus
             </Typography>
+            <Button 
+              variant="outlined" 
+              color="inherit" 
+              onClick={handleLogout}
+              sx={{ ml: 2 }}
+            >
+              🔓 Déconnexion
+            </Button>
           </Toolbar>
         </AppBar>
 
