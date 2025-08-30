@@ -32,7 +32,7 @@ import DebugInfo from './components/Debug/DebugInfo';
 import IdVisualizer from './components/Debug/IdVisualizer';
 import ProduitInfo from './components/Debug/ProduitInfo';
 import CompositionManager from './components/CompositionManager/CompositionManager';
-import ImportStats from './components/Stats/ImportStats';
+// import ImportStats from './components/Stats/ImportStats';
 import StatisticsDashboard from './components/Stats/StatisticsDashboard';
 import UnificationTest from './components/Unification/UnificationTest';
 import ExcelToJsonConverter from './components/Conversion/ExcelToJsonConverter';
@@ -102,14 +102,14 @@ function App() {
   const [savedMappings, setSavedMappings] = useState<Array<{ name: string; mapping: MappingColonnes }>>([]);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [currentMapping, setCurrentMapping] = useState<MappingColonnes>({});
-  const [statsImport, setStatsImport] = useState<{
-    lignesOriginales: number;
-    lignesFinales: number;
-    composantsAjoutes: number;
-    compositionsTrouvees: number;
-  } | null>(null);
+  // const [statsImport, setStatsImport] = useState<{
+  //   lignesOriginales: number;
+  //   lignesFinales: number;
+  //   composantsAjoutes: number;
+  //   compositionsTrouvees: number;
+  // } | null>(null);
   const [ventesJsonImportees, setVentesJsonImportees] = useState<VenteLigne[]>([]);
-  const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
+  // const [mergeResult, setMergeResult] = useState<MergeResult | null>(null);
   
   const excelService = useMemo(() => new ExcelService(), []);
   const securityService = useMemo(() => new SecurityService(), []);

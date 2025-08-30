@@ -22,13 +22,11 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Delete as DeleteIcon,
   Save as SaveIcon,
   PlayArrow as PlayArrowIcon,
-  Edit as EditIcon,
   Download as DownloadIcon
 } from '@mui/icons-material';
-import CompositionService, { Composition, Composant, CompositionEdition } from '../../services/CompositionService';
+import CompositionService, { Composant, CompositionEdition } from '../../services/CompositionService';
 
 interface CompositionManagerProps {
   compositionService: CompositionService;
