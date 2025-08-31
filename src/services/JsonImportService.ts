@@ -143,28 +143,28 @@ export class JsonImportService {
         // Mapping des colonnes Excel vers les propriétés VenteLigne
         const vente: VenteLigne = {
           date: this.parseDate(row.Date || row['Date']),
-          nom: row.Produit || '',
-          produit: row.Produit || '',
-          id: row.Id || row.ID || '',
-          quantite: this.parseNumber(row.Qté || row['Qté']) || 0,
-          boutique: row.Boutique || '',
-          montantTTC: this.parseNumber(row['Montant TTC'], true) || 0, // Montant en centimes
-          prix_ttc: this.parseNumber(row['Prix unitaire TTC'] || row['Prix TTC'], true) || 0, // Prix en centimes
-          prix_achat: this.parseNumber(row['Prix Achat'] || row['Prix d\'achat'], true) || 0, // Prix en centimes
-          tva: this.parseNumber(row.TVA, true) || 0, // TVA en centimes
-          categorie: row.Catégorie || row['Cat. défaut'] || row['Cat. racine'] || '',
-          fournisseur: row.Fournisseur || '',
-          fabricant: row.Fabricant || row.Fabriquant || '',
-          caissier: row.Caissier || '',
-          commande: row.Commande || '',
-          numeroOperation: row['#Op'] || row['Op'] || row['Operation'] || '',
-          retour: this.parseBoolean(row.Retour),
-          client: row.Client || '',
-          paiement: row.Paiement || '',
-          ean: row.EAN || row.Ean || '',
-          reference: row.Référence || row['Référence'] || '',
-          declinaison: row.Déclinaison || '',
-          remiseTTC: this.parseNumber(row['Remise TTC'], true) || 0, // Remise en centimes
+          nom: row.Produit || row.produit || '',
+          produit: row.Produit || row.produit || '',
+          id: row.Id || row.ID || row.id || '',
+          quantite: this.parseNumber(row.Qté || row['Qté'] || row.quantite || row.quantity) || 0,
+          boutique: row.Boutique || row.boutique || '',
+          montantTTC: this.parseNumber(row['Montant TTC'] || row.montantTTC || row.montant, true) || 0, // Montant en centimes
+          prix_ttc: this.parseNumber(row['Prix unitaire TTC'] || row['Prix TTC'] || row.prix_ttc, true) || 0, // Prix en centimes
+          prix_achat: this.parseNumber(row['Prix d\'achat'] || row['Prix Achat'] || row.prix_achat, true) || 0, // Prix en centimes
+          tva: this.parseNumber(row.TVA || row.tva, true) || 0, // TVA en centimes
+          categorie: row['Cat. défaut'] || row['Cat. racine'] || row.Catégorie || row.categorie || '',
+          fournisseur: row.Fournisseur || row.fournisseur || '',
+          fabricant: row.Fabriquant || row.Fabricant || row.fabricant || '',
+          caissier: row.Caissier || row.caissier || '',
+          commande: row.Commande || row.commande || '',
+          numeroOperation: row['#Op'] || row['Op'] || row.operation || '',
+          retour: this.parseBoolean(row.Retour || row.retour),
+          client: row.Client || row.client || '',
+          paiement: row.Paiement || row.paiement || '',
+          ean: row.EAN || row.Ean || row.ean || '',
+          reference: row.Référence || row['Référence'] || row.reference || '',
+          declinaison: row.Déclinaison || row.declinaison || '',
+          remiseTTC: this.parseNumber(row['Remise TTC'] || row.remiseTTC, true) || 0, // Remise en centimes
           type: 'Original' // Par défaut, sera modifié par la décomposition
         };
 

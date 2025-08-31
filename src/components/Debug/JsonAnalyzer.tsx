@@ -108,16 +108,30 @@ const JsonAnalyzer: React.FC<JsonAnalyzerProps> = ({ ventes }) => {
       
       let ventesFichier: VenteLigne[] = [];
       
-      // Détecter le format du fichier
-      if (Array.isArray(data)) {
-        ventesFichier = data;
-      } else if (data.ventes && Array.isArray(data.ventes)) {
-        ventesFichier = data.ventes;
-      } else if (data.data && Array.isArray(data.data)) {
-        ventesFichier = data.data;
-      } else {
-        throw new Error('Format de fichier non reconnu');
-      }
+             // Détecter le format du fichier
+       if (Array.isArray(data)) {
+         ventesFichier = data;
+       } else if (data.ventes && Array.isArray(data.ventes)) {
+         ventesFichier = data.ventes;
+       } else if (data.data && Array.isArray(data.data)) {
+         ventesFichier = data.data;
+       } else {
+         throw new Error('Format de fichier non reconnu');
+       }
+
+       // Normaliser les propriétés pour correspondre à notre structure
+       ventesFichier = ventesFichier.map((vente: any) => ({
+         id: vente.Id || vente.id || vente['#Id'],
+         produit: vente.Produit || vente.produit || vente['Nom Produit'],
+         montantTTC: vente['Montant TTC'] || vente.montantTTC || vente.montant || vente.prix,
+         categorie: vente['Cat. défaut'] || vente['Cat. racine'] || vente.categorie || vente.catégorie,
+         quantite: vente.Qté || vente.quantite || vente.quantity || vente.qte,
+         date: vente.Date || vente.date,
+         boutique: vente.Boutique || vente.boutique,
+         operation: vente['#Op'] || vente.operation || vente.op,
+         // Conserver toutes les autres propriétés
+         ...vente
+       }));
 
       // Analyser les ventes du fichier
       const idsUniques = new Set<string>();
