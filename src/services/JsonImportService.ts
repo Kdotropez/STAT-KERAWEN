@@ -148,10 +148,10 @@ export class JsonImportService {
           id: row.Id || row.ID || row.id || '',
           quantite: this.parseNumber(row.Qté || row['Qté'] || row.quantite || row.quantity) || 0,
           boutique: row.Boutique || row.boutique || '',
-          montantTTC: this.parseNumber(row['Montant TTC'] || row.montantTTC || row.montant, true) || 0, // Montant en centimes
-          prix_ttc: this.parseNumber(row['Prix unitaire TTC'] || row['Prix TTC'] || row.prix_ttc, true) || 0, // Prix en centimes
-          prix_achat: this.parseNumber(row['Prix d\'achat'] || row['Prix Achat'] || row.prix_achat, true) || 0, // Prix en centimes
-          tva: this.parseNumber(row.TVA || row.tva, true) || 0, // TVA en centimes
+          montantTTC: this.parseNumber(row['Montant TTC'] || row.montantTTC || row.montant) || 0, // Montant en euros
+          prix_ttc: this.parseNumber(row['Prix unitaire TTC'] || row['Prix TTC'] || row.prix_ttc) || 0, // Prix en euros
+          prix_achat: this.parseNumber(row['Prix d\'achat'] || row['Prix Achat'] || row.prix_achat) || 0, // Prix en euros
+          tva: this.parseNumber(row.TVA || row.tva) || 0, // TVA en euros
           categorie: row['Cat. défaut'] || row['Cat. racine'] || row.Catégorie || row.categorie || '',
           fournisseur: row.Fournisseur || row.fournisseur || '',
           fabricant: row.Fabriquant || row.Fabricant || row.fabricant || '',
@@ -164,7 +164,7 @@ export class JsonImportService {
           ean: row.EAN || row.Ean || row.ean || '',
           reference: row.Référence || row['Référence'] || row.reference || '',
           declinaison: row.Déclinaison || row.declinaison || '',
-          remiseTTC: this.parseNumber(row['Remise TTC'] || row.remiseTTC, true) || 0, // Remise en centimes
+          remiseTTC: this.parseNumber(row['Remise TTC'] || row.remiseTTC) || 0, // Remise en euros
           type: 'Original' // Par défaut, sera modifié par la décomposition
         };
 
