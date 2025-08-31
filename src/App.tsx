@@ -44,6 +44,7 @@ import UnclassifiedProductsManagerComponent from './components/UnclassifiedProdu
 import { MonthlyMergeInterface } from './components/MonthlyMergeInterface';
 import Login from './components/Auth/Login';
 import CategorieAnalyzer from './components/Debug/CategorieAnalyzer';
+import JsonAnalyzer from './components/Debug/JsonAnalyzer';
 
 
 
@@ -670,6 +671,7 @@ function App() {
             <TabPanel value={tabValue} index={4}>
               <ProduitInfo referenceService={referenceService} />
               <CategorieAnalyzer ventes={ventesDecomposees.length > 0 ? ventesDecomposees : ventes} />
+              <JsonAnalyzer ventes={ventesDecomposees.length > 0 ? ventesDecomposees : ventes} />
             </TabPanel>
 
                          <TabPanel value={tabValue} index={5}>
