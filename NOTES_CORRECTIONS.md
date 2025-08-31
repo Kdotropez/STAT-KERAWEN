@@ -32,3 +32,13 @@
   - Optimisation des dépendances des hooks React
 - **Résultat** : Le bouton fonctionne maintenant correctement sans accumulation de données
 - **Leçon** : Toujours utiliser `useMemo` pour les calculs coûteux et éviter les logs de debug en production
+
+### 2024-12-31 - Correction du filtrage des composants dans StatisticsService (BUG CRITIQUE)
+- **Problème** : Les composants avec montant = 0€ étaient toujours visibles en mode "Masquer composants"
+- **Cause** : Le filtrage se faisait au niveau de l'interface (ProductDetails) mais les composants étaient déjà inclus dans les données du service
+- **Impact** : L'utilisateur voyait des composants avec 0€ même en mode "Masquer composants"
+- **Solution** : 
+  - Ajout d'un filtre `.filter(produit => produit.montant > 0)` dans `StatisticsService` pour exclure les composants avec montant = 0
+  - Simplification de la logique dans `ProductDetails.tsx` puisque le filtrage se fait maintenant au niveau du service
+- **Résultat** : En mode "Masquer composants", seuls les produits avec montant > 0 sont visibles
+- **Leçon** : Le filtrage des données doit se faire au niveau du service, pas seulement au niveau de l'interface

@@ -74,6 +74,11 @@ export interface StatistiquesVentes {
 
 export class StatisticsService {
   private ventes: VenteLigne[] = [];
+  private compositionService: any; // Assuming CompositionService is globally available or passed
+
+  constructor(compositionService?: any) {
+    this.compositionService = compositionService;
+  }
 
   // Charger les ventes depuis localStorage (priorité aux données cumulatives)
   chargerVentes(): VenteLigne[] {
@@ -150,18 +155,21 @@ export class StatisticsService {
     // Utiliser les ventes passées en paramètre ou charger depuis localStorage
     let ventesAAnalyser = ventes || this.chargerVentes();
     
-    // Décomposer automatiquement les compositions
-    try {
-      const CompositionService = (await import('./CompositionService')).default;
-      const compositionService = new CompositionService();
-      await compositionService.chargerCompositions();
-      
-      const resultatDecomposition = await compositionService.decomposerVentes(ventesAAnalyser);
-      ventesAAnalyser = resultatDecomposition.ventes;
-      
-      console.log(`🔍 Décomposition effectuée: ${ventesAAnalyser.length} lignes après décomposition (+${resultatDecomposition.composantsAjoutes} composants ajoutés)`);
-    } catch (error) {
-      console.warn('⚠️ Impossible de décomposer les compositions, utilisation des ventes originales:', error);
+    // Si des ventes sont passées en paramètre, elles sont déjà décomposées
+    // Sinon, décomposer automatiquement les compositions avec le service unifié
+    if (!ventes) {
+      try {
+        const UnifiedProductService = (await import('./UnifiedProductService')).default;
+        const unifiedService = new UnifiedProductService();
+        await unifiedService.chargerProduitsUnifies();
+        
+        const resultatDecomposition = unifiedService.decomposerVentes(ventesAAnalyser);
+        ventesAAnalyser = resultatDecomposition.ventes;
+        
+        console.log(`🔍 Décomposition effectuée: ${ventesAAnalyser.length} lignes après décomposition (+${resultatDecomposition.composantsAjoutes} composants ajoutés)`);
+      } catch (error) {
+        console.warn('⚠️ Impossible de décomposer les compositions, utilisation des ventes originales:', error);
+      }
     }
     
     console.log('🔍 DEBUG - Ventes reçues pour statistiques:', ventesAAnalyser.length);
@@ -250,38 +258,41 @@ export class StatisticsService {
       }
     });
 
-    stats.ventesParProduit = Array.from(ventesParProduitMap.entries()).map(([key, data]) => {
-      const [id, type] = key.split('_');
-      const produit = {
-        id: id.startsWith('SANS_ID_') ? 'Sans ID' : id,
-        nom: data.nom,
-        quantite: data.quantite,
-        montant: data.montant,
-        prixMoyen: data.montant / data.quantite,
-        type: type === 'composant' ? 'Composant' : (id.startsWith('SANS_ID_') ? 'À classer' : 'Simple'),
-        prix_ttc: data.prix_ttc
-      };
-      
-      // Debug pour VN TROPEZ
-      if (id === '5851') {
-        console.log('🔍 Debug StatisticsService - VN TROPEZ:', {
-          key,
-          type,
-          produit
-        });
-      }
-      
-      // Debug pour les services
-      if (id.startsWith('SERVICE_') || data.nom.toLowerCase().includes('frais de port')) {
-        console.log('🔍 Debug StatisticsService - Service:', {
-          key,
-          type,
-          produit
-        });
-      }
-      
-      return produit;
-    }).sort((a, b) => b.montant - a.montant);
+    stats.ventesParProduit = Array.from(ventesParProduitMap.entries())
+      .map(([key, data]) => {
+        const [id, type] = key.split('_');
+        const produit = {
+          id: id.startsWith('SANS_ID_') ? 'Sans ID' : id,
+          nom: data.nom,
+          quantite: data.quantite,
+          montant: data.montant,
+          prixMoyen: data.montant / data.quantite,
+          type: type === 'composant' ? 'Composant' : (id.startsWith('SANS_ID_') ? 'À classer' : 'Simple'),
+          prix_ttc: data.prix_ttc
+        };
+        
+        // Debug pour VN TROPEZ
+        if (id === '5851') {
+          console.log('🔍 Debug StatisticsService - VN TROPEZ:', {
+            key,
+            type,
+            produit
+          });
+        }
+        
+        // Debug pour les services
+        if (id.startsWith('SERVICE_') || data.nom.toLowerCase().includes('frais de port')) {
+          console.log('🔍 Debug StatisticsService - Service:', {
+            key,
+            type,
+            produit
+          });
+        }
+        
+        return produit;
+      })
+      .filter(produit => produit.montant > 0) // Filtrer les produits avec montant = 0
+      .sort((a, b) => b.montant - a.montant);
 
     // Ventes par boutique - EXCLURE les composants (prix à 0)
     const ventesParBoutiqueMap = new Map<string, { quantite: number; montant: number; nombreVentes: number }>();
@@ -397,12 +408,35 @@ export class StatisticsService {
       }));
 
     // Compositions décomposées
-    const compositions = ventesAAnalyser.filter(v => v.type === 'Composé' || v.type === 'Cumulé');
-    stats.compositionsDecomposees = {
-      nombreCompositions: ventesAAnalyser.filter(v => v.type === 'Composé').length,
-      composantsAjoutes: ventesAAnalyser.filter(v => v.type === 'Cumulé').length,
-      montantCompositions: compositions.reduce((total, v) => total + v.montantTTC, 0)
-    };
+    // Utiliser le service unifié pour des statistiques précises
+    try {
+      const UnifiedProductService = (await import('./UnifiedProductService')).default;
+      const unifiedService = new UnifiedProductService();
+      await unifiedService.chargerProduitsUnifies();
+      
+      // Calculer les statistiques avec le service unifié
+      const statsCompositions = unifiedService.calculerStatistiquesCompositions(ventesAAnalyser);
+      
+      stats.compositionsDecomposees = {
+        nombreCompositions: statsCompositions.nombreCompositions,
+        composantsAjoutes: statsCompositions.composantsAjoutes,
+        montantCompositions: statsCompositions.montantCompositions
+      };
+      
+      console.log(`🔍 Compositions décomposées: ${statsCompositions.nombreCompositions} compositions, ${statsCompositions.composantsAjoutes} composants ajoutés`);
+      
+    } catch (error) {
+      console.warn('⚠️ Impossible de charger les produits unifiés pour les statistiques:', error);
+      // Fallback sur l'ancienne logique
+      const ventesAvecPrix = ventesAAnalyser.filter(v => v.prix_ttc > 0);
+      const ventesSansPrix = ventesAAnalyser.filter(v => v.prix_ttc === 0);
+      
+      stats.compositionsDecomposees = {
+        nombreCompositions: ventesAvecPrix.length,
+        composantsAjoutes: ventesSansPrix.length,
+        montantCompositions: ventesAvecPrix.reduce((total, v) => total + v.montantTTC, 0)
+      };
+    }
 
     // Retours et remboursements
     stats.retours = ventesAAnalyser

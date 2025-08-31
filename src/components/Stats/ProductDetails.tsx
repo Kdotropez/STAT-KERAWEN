@@ -56,12 +56,11 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ statistiques }) => {
   const produitsRegroupes = useMemo(() => {
     if (afficherComposants) {
       // Mode "Afficher composants" : différencier les composants des articles simples
+      // Pour l'instant, on utilise les mêmes données car le filtrage se fait au niveau du service
       return statistiques.ventesParProduit;
     } else {
-      // Mode "Masquer composants" : ne montrer que les produits vendus individuellement (montant > 0)
-      // Filtrer d'abord pour ne garder que les produits avec montant > 0
-      const produitsVendus = statistiques.ventesParProduit.filter((produit: any) => produit.montant > 0);
-      
+      // Mode "Masquer composants" : les composants sont déjà filtrés au niveau du service
+      // On peut juste regrouper les produits avec le même ID si nécessaire
       const produitsRegroupesMap = new Map<string, {
         id: string;
         nom: string;
@@ -72,7 +71,7 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ statistiques }) => {
         prixMoyen: number;
       }>();
 
-      produitsVendus.forEach((produit: any) => {
+      statistiques.ventesParProduit.forEach((produit: any) => {
         const idPur = produit.id;
         const existant = produitsRegroupesMap.get(idPur);
         
