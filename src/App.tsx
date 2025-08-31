@@ -22,6 +22,7 @@ import {
   Info as InfoIcon,
   Merge as MergeIcon,
   DataObject as DataObjectIcon,
+  Edit as EditIcon,
 
 } from '@mui/icons-material';
 
@@ -32,6 +33,7 @@ import DebugInfo from './components/Debug/DebugInfo';
 import IdVisualizer from './components/Debug/IdVisualizer';
 import ProduitInfo from './components/Debug/ProduitInfo';
 import CompositionManager from './components/CompositionManager/CompositionManager';
+import CompositionEditor from './components/CompositionManager/CompositionEditor';
 // import ImportStats from './components/Stats/ImportStats';
 import StatisticsDashboard from './components/Stats/StatisticsDashboard';
 import UnificationTest from './components/Unification/UnificationTest';
@@ -54,7 +56,7 @@ import { MergeResult } from './services/MonthlyMergeService';
 import { ExcelService } from './services/fileHandling/excelService';
 import { SecurityService } from './services/security/securityService';
 import { ReferenceService } from './services/ReferenceService';
-import CompositionService from './services/CompositionService';
+
 import StatisticsService from './services/StatisticsService';
 import FileConversionService from './services/FileConversionService';
 import FileUnificationService from './services/FileUnificationService';
@@ -105,7 +107,7 @@ function App() {
   const [processedFiles, setProcessedFiles] = useState<ProcessedFile[]>([]);
   const [ventes, setVentes] = useState<VenteLigne[]>([]);
   const [ventesDecomposees, setVentesDecomposees] = useState<VenteLigne[]>([]);
-  const [compositionService, setCompositionService] = useState<CompositionService | null>(null);
+
   const [savedMappings, setSavedMappings] = useState<Array<{ name: string; mapping: MappingColonnes }>>([]);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [currentMapping, setCurrentMapping] = useState<MappingColonnes>({});
@@ -125,28 +127,7 @@ function App() {
   const fileConversionService = useMemo(() => new FileConversionService(), []);
   const unificationService = useMemo(() => new FileUnificationService(), []);
 
-  // Charger les compositions au démarrage
-  useEffect(() => {
-    const chargerCompositions = async () => {
-      try {
-        console.log('🔧 Initialisation du CompositionService...');
-        const compositionService = new CompositionService();
-        console.log('🔧 CompositionService créé, chargement des compositions...');
-        await compositionService.chargerCompositions();
-        console.log('✅ CompositionService initialisé avec succès');
-        console.log('🔧 Nombre de compositions chargées:', compositionService.getCompositions().length);
-        setCompositionService(compositionService);
-      } catch (error) {
-        console.error('❌ Erreur lors du chargement des compositions:', error);
-        setNotification({
-          message: 'Erreur lors du chargement des compositions de produits',
-          type: 'error'
-        });
-      }
-    };
 
-    chargerCompositions();
-  }, []);
 
   // Charger le fichier de référence des produits s'il existe
   useEffect(() => {
@@ -222,143 +203,114 @@ function App() {
   const handleMappingComplete = async (mapping: MappingColonnes) => {
     console.log('🔧 handleMappingComplete appelé avec mapping:', mapping);
     setCurrentMapping(mapping);
-    try {
-      console.log('🚀 Début du traitement de l\'import...');
-      console.log('📁 Fichiers à traiter:', processedFiles.length);
-      console.log('🔧 Mapping utilisé:', mapping);
-      console.log('📋 Fichiers disponibles:', processedFiles.map(f => f.file.name));
-      
-      if (processedFiles.length === 0) {
-        console.error('❌ Aucun fichier à traiter !');
-        setNotification({
-          message: 'Aucun fichier à traiter. Veuillez d\'abord uploader un fichier Excel.',
-          type: 'error'
-        });
-        return;
-      }
-      
-      const nouvellesVentes: VenteLigne[] = [];
-      
-      for (const file of processedFiles) {
-        console.log(`📄 Traitement du fichier: ${file.file.name}`);
-        console.log(`📊 Données du fichier: ${file.data.length} lignes`);
-        console.log(`📋 Headers du fichier:`, file.headers);
-        
-        if (!file.data || file.data.length === 0) {
-          console.error(`❌ Fichier ${file.file.name} vide ou invalide`);
-          continue;
-        }
-        
-        const ventesFichier = excelService.appliquerMapping(file.data, mapping);
-        console.log(`✅ Ventes extraites: ${ventesFichier.length} lignes`);
-        
-        nouvellesVentes.push(...ventesFichier);
-      }
-      
-      console.log(`📈 Total des ventes importées: ${nouvellesVentes.length}`);
-
-      // Décomposer les ventes en composants si le service est disponible
-      let ventesFinales = nouvellesVentes;
-      let decompositionsAjoutees = 0;
-      let compositionsTrouvees = 0;
-      
-      if (compositionService) {
-        console.log('🔍 Décomposition automatique des ventes...');
-        
-        // Compter les compositions trouvées
-        const idsCompositions = compositionService.getIdsCompositions();
-        console.log('🔍 IDs des compositions disponibles:', idsCompositions);
-        
-        const ventesAvecCompositions = nouvellesVentes.filter(vente => 
-          idsCompositions.includes(vente.id)
-        );
-        compositionsTrouvees = ventesAvecCompositions.length;
-        
-        console.log('🔍 Ventes avec compositions trouvées:', ventesAvecCompositions.map(v => ({ id: v.id, nom: v.nom })));
-        console.log('🔍 Nombre de compositions trouvées:', compositionsTrouvees);
-        
-                 const resultatDecomposition = await compositionService.decomposerVentes(nouvellesVentes);
-         decompositionsAjoutees = resultatDecomposition.composantsAjoutes;
-         ventesFinales = resultatDecomposition.ventes;
-        
-        console.log(`✅ Décomposition terminée: ${nouvellesVentes.length} lignes originales → ${ventesFinales.length} lignes totales (+${decompositionsAjoutees} composants ajoutés)`);
-      }
-
-      // Sauvegarder les statistiques
-      console.log('📊 Statistiques calculées:', {
-        lignesOriginales: nouvellesVentes.length,
-        lignesFinales: ventesFinales.length,
-        composantsAjoutes: decompositionsAjoutees,
-        compositionsTrouvees: compositionsTrouvees
-      });
-      
-      const statsImportData = {
-        lignesOriginales: nouvellesVentes.length,
-        lignesFinales: ventesFinales.length,
-        composantsAjoutes: decompositionsAjoutees,
-        compositionsTrouvees: compositionsTrouvees
-      };
-      
-      console.log('📊 Définition des statistiques:', statsImportData);
-      // setStatsImport(statsImportData);
-      console.log('✅ Statistiques définies dans l\'état');
-
-             setVentes(prev => [...prev, ...ventesFinales]);
-       
-       // Convertir et sauvegarder en JSON pour optimiser les performances
-       console.log('🔄 Début de la conversion JSON...');
-       for (const file of processedFiles) {
-         try {
-           console.log(`📄 Conversion JSON pour: ${file.file.name}`);
-           console.log(`📊 ${ventesFinales.length} ventes à convertir`);
-           await fileConversionService.convertirEtSauvegarder(
-             file.file.name, 
-             ventesFinales, 
-             'excel'
-           );
-           console.log(`✅ Conversion JSON terminée pour: ${file.file.name}`);
-         } catch (error) {
-           console.error(`❌ Erreur lors de la conversion JSON pour ${file.file.name}:`, error);
-         }
-       }
-       console.log('✅ Toutes les conversions JSON terminées');
-       
-       // Sauvegarder automatiquement avec le nouveau service de statistiques
-       await statisticsService.sauvegarderVentes(ventesFinales);
-       securityService.sauvegarderVentes(ventesFinales);
-      
-      // Exporter le fichier avec nom daté
-      try {
-        console.log('📁 Début de l\'export du fichier...');
-        const FileExportService = (await import('./services/FileExportService')).default;
-        const exportService = new FileExportService();
-        console.log(`📊 Export de ${ventesFinales.length} lignes...`);
-        await exportService.exporterVentesDecomposees(ventesFinales);
-        console.log('✅ Export terminé avec succès');
-        
-        setNotification({
-          message: `${ventesFinales.length} ventes importées et traitées (+${decompositionsAjoutees} composants ajoutés). Fichier exporté avec succès !`,
-          type: 'success'
-        });
-      } catch (exportError) {
-        console.error('❌ Erreur lors de l\'export:', exportError);
-        setNotification({
-          message: `${ventesFinales.length} ventes importées et traitées (+${decompositionsAjoutees} composants ajoutés)`,
-          type: 'success'
-        });
-      }
-      
-      // Passer à l'onglet des statistiques
-      console.log('🔄 Passage à l\'onglet Statistiques (index 1)');
-      setTabValue(1);
-      console.log('✅ Onglet changé vers Statistiques');
-      
-    } catch (error) {
+    
+    console.log('🚀 Début du traitement de l\'import...');
+    console.log('📁 Fichiers à traiter:', processedFiles.length);
+    console.log('🔧 Mapping utilisé:', mapping);
+    console.log('📋 Fichiers disponibles:', processedFiles.map(f => f.file.name));
+    
+    if (processedFiles.length === 0) {
+      console.error('❌ Aucun fichier à traiter !');
       setNotification({
-        message: error instanceof Error ? error.message : 'Erreur lors du traitement des données',
+        message: 'Aucun fichier à traiter. Veuillez d\'abord uploader un fichier Excel.',
         type: 'error'
       });
+      return;
     }
+    
+    const nouvellesVentes: VenteLigne[] = [];
+    
+    for (const file of processedFiles) {
+      console.log(`📄 Traitement du fichier: ${file.file.name}`);
+      console.log(`📊 Données du fichier: ${file.data.length} lignes`);
+      console.log(`📋 Headers du fichier:`, file.headers);
+      
+      if (!file.data || file.data.length === 0) {
+        console.error(`❌ Fichier ${file.file.name} vide ou invalide`);
+        continue;
+      }
+      
+      const ventesFichier = excelService.appliquerMapping(file.data, mapping);
+      console.log(`✅ Ventes extraites: ${ventesFichier.length} lignes`);
+      
+      nouvellesVentes.push(...ventesFichier);
+    }
+    
+    console.log(`📈 Total des ventes importées: ${nouvellesVentes.length}`);
+
+    // Pour l'instant, pas de décomposition automatique (système obsolète)
+    let ventesFinales = nouvellesVentes;
+    let decompositionsAjoutees = 0;
+    let compositionsTrouvees = 0;
+
+    // Sauvegarder les statistiques
+    console.log('📊 Statistiques calculées:', {
+      lignesOriginales: nouvellesVentes.length,
+      lignesFinales: ventesFinales.length,
+      composantsAjoutes: decompositionsAjoutees,
+      compositionsTrouvees: compositionsTrouvees
+    });
+    
+    const statsImportData = {
+      lignesOriginales: nouvellesVentes.length,
+      lignesFinales: ventesFinales.length,
+      composantsAjoutes: decompositionsAjoutees,
+      compositionsTrouvees: compositionsTrouvees
+    };
+    
+    console.log('📊 Définition des statistiques:', statsImportData);
+    console.log('✅ Statistiques définies dans l\'état');
+
+    setVentes(prev => [...prev, ...ventesFinales]);
+   
+    // Convertir et sauvegarder en JSON pour optimiser les performances
+    console.log('🔄 Début de la conversion JSON...');
+    for (const file of processedFiles) {
+      try {
+        console.log(`📄 Conversion JSON pour: ${file.file.name}`);
+        console.log(`📊 ${ventesFinales.length} ventes à convertir`);
+        await fileConversionService.convertirEtSauvegarder(
+          file.file.name, 
+          ventesFinales, 
+          'excel'
+        );
+        console.log(`✅ Conversion JSON terminée pour: ${file.file.name}`);
+      } catch (error) {
+        console.error(`❌ Erreur lors de la conversion JSON pour ${file.file.name}:`, error);
+      }
+    }
+    console.log('✅ Toutes les conversions JSON terminées');
+    
+    // Sauvegarder automatiquement avec le nouveau service de statistiques
+    await statisticsService.sauvegarderVentes(ventesFinales);
+    securityService.sauvegarderVentes(ventesFinales);
+   
+    // Exporter le fichier avec nom daté
+    try {
+      console.log('📁 Début de l\'export du fichier...');
+      const FileExportService = (await import('./services/FileExportService')).default;
+      const exportService = new FileExportService();
+      console.log(`📊 Export de ${ventesFinales.length} lignes...`);
+      await exportService.exporterVentesDecomposees(ventesFinales);
+      console.log('✅ Export terminé avec succès');
+      
+      setNotification({
+        message: `${ventesFinales.length} ventes importées et traitées (+${decompositionsAjoutees} composants ajoutés). Fichier exporté avec succès !`,
+        type: 'success'
+      });
+    } catch (exportError) {
+      console.error('❌ Erreur lors de l\'export:', exportError);
+      setNotification({
+        message: `${ventesFinales.length} ventes importées et traitées (+${decompositionsAjoutees} composants ajoutés)`,
+        type: 'success'
+      });
+    }
+    
+    // Passer à l'onglet des statistiques
+    console.log('🔄 Passage à l\'onglet Statistiques (index 1)');
+    setTabValue(1);
+    console.log('✅ Onglet changé vers Statistiques');
+    
   };
 
   const handleJsonImportComplete = (result: ImportResult) => {
@@ -508,12 +460,12 @@ function App() {
                 
                 <Button
                   variant={tabValue === 5 ? "contained" : "outlined"}
-                  startIcon={<SettingsIcon />}
+                  startIcon={<EditIcon />}
                   onClick={() => setTabValue(5)}
                   size="small"
                   sx={{ minWidth: 'auto', px: 2 }}
                 >
-                  Gestion Compositions
+                  Éditer Compositions
                 </Button>
                 
                 <Button
@@ -639,11 +591,7 @@ function App() {
                          <strong>{processedFiles.reduce((total, file) => total + file.data.length, 0)} lignes</strong> 
                          prêtes à être importées depuis {processedFiles.length} fichier(s)
                        </Typography>
-                       {compositionService && (
-                         <Typography variant="body2" color="info.contrastText" sx={{ mt: 1 }}>
-                           🧩 {compositionService.getCompositions().length} compositions disponibles pour la décomposition automatique
-                         </Typography>
-                       )}
+
                      </Box>
                    )}
                 </Box>
@@ -675,9 +623,14 @@ function App() {
             </TabPanel>
 
                          <TabPanel value={tabValue} index={5}>
-               {compositionService && (
-                 <CompositionManager compositionService={compositionService} />
-               )}
+               <CompositionEditor 
+                 onCompositionUpdated={() => {
+                   setNotification({
+                     message: 'Compositions mises à jour avec succès',
+                     type: 'success'
+                   });
+                 }}
+               />
              </TabPanel>
 
                                        <TabPanel value={tabValue} index={6}>
