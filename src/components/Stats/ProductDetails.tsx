@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Box,
   Paper,
@@ -45,39 +45,87 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ statistiques }) => {
         return 'secondary';
       case 'Mixte':
         return 'warning';
+      case 'Composition':
+        return 'primary';
       default:
         return 'default';
     }
   };
 
-  // Filtrage et tri des produits
-  const produitsFiltres = statistiques.ventesParProduit
-    .filter((produit: any) => {
-      // Filtrage par type (composants ou non)
-      if (!afficherComposants && produit.type === 'Composant') {
-        return false;
-      }
+  // Logique de regroupement des produits selon le mode d'affichage (mémorisée)
+  const produitsRegroupes = useMemo(() => {
+    if (afficherComposants) {
+      // Mode "Afficher composants" : différencier les composants des articles simples
+      return statistiques.ventesParProduit;
+    } else {
+      // Mode "Masquer composants" : ne montrer que les produits vendus individuellement (montant > 0)
+      // Filtrer d'abord pour ne garder que les produits avec montant > 0
+      const produitsVendus = statistiques.ventesParProduit.filter((produit: any) => produit.montant > 0);
       
-      // Filtrage par recherche
-      if (!rechercheProduit) return true;
-      const recherche = rechercheProduit.toLowerCase();
-      return produit.nom.toLowerCase().includes(recherche) || 
-             produit.id.toLowerCase().includes(recherche);
-    })
-    .sort((a: any, b: any) => {
-      switch (triProduit) {
-        case 'quantite':
-          return b.quantite - a.quantite;
-        case 'montant':
-          return b.montant - a.montant;
-        case 'nom':
-          return a.nom.localeCompare(b.nom);
-        case 'id':
-          return a.id.localeCompare(b.id);
-        default:
-          return 0;
-      }
-    });
+      const produitsRegroupesMap = new Map<string, {
+        id: string;
+        nom: string;
+        quantite: number;
+        montant: number;
+        prix_ttc: number;
+        type: string;
+        prixMoyen: number;
+      }>();
+
+      produitsVendus.forEach((produit: any) => {
+        const idPur = produit.id;
+        const existant = produitsRegroupesMap.get(idPur);
+        
+        if (existant) {
+          // Additionner les quantités et montants
+          existant.quantite += produit.quantite;
+          existant.montant += produit.montant;
+          
+          // Recalculer le prix moyen
+          existant.prixMoyen = existant.montant / existant.quantite;
+        } else {
+          // Nouveau produit
+          produitsRegroupesMap.set(idPur, {
+            id: idPur,
+            nom: produit.nom,
+            quantite: produit.quantite,
+            montant: produit.montant,
+            prix_ttc: produit.prix_ttc,
+            type: produit.type,
+            prixMoyen: produit.montant / produit.quantite
+          });
+        }
+      });
+
+      return Array.from(produitsRegroupesMap.values());
+    }
+  }, [afficherComposants, statistiques.ventesParProduit]);
+
+  // Filtrage et tri des produits (mémorisé)
+  const produitsFiltres = useMemo(() => {
+    return produitsRegroupes
+      .filter((produit: any) => {
+        // Filtrage par recherche
+        if (!rechercheProduit) return true;
+        const recherche = rechercheProduit.toLowerCase();
+        return produit.nom.toLowerCase().includes(recherche) || 
+               produit.id.toLowerCase().includes(recherche);
+      })
+      .sort((a: any, b: any) => {
+        switch (triProduit) {
+          case 'quantite':
+            return b.quantite - a.quantite;
+          case 'montant':
+            return b.montant - a.montant;
+          case 'nom':
+            return a.nom.localeCompare(b.nom);
+          case 'id':
+            return a.id.localeCompare(b.id);
+          default:
+            return 0;
+        }
+      });
+  }, [produitsRegroupes, rechercheProduit, triProduit]);
 
   return (
     <Paper sx={{ p: 3, mb: 3 }}>
@@ -122,7 +170,10 @@ const ProductDetails: React.FC<ProductDetailsProps> = ({ statistiques }) => {
       {/* Statistiques de filtrage */}
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          {afficherComposants ? 'Tous les produits' : 'Produits simples uniquement'} 
+          {afficherComposants 
+            ? 'Composants et articles simples différenciés' 
+            : 'Produits vendus individuellement (composants masqués)'
+          } 
           ({produitsFiltres.length} produits visibles sur {statistiques.ventesParProduit.length})
         </Typography>
       </Box>

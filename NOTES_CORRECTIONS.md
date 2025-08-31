@@ -21,3 +21,14 @@
   - 6580 - PACK 6 TUBES TROPEZ : 1 → 6 composants
   - 6981 - VICTORIA TROPEZ + 12 BK TROPEZ : 2 → 13 composants
 - **Leçon** : Respecter la logique métier de l'utilisateur : 6 tubes = 6 composants physiques individuels
+
+### 2024-12-31 - Correction de l'incrémentation des données dans ProductDetails (BUG)
+- **Problème** : À chaque clic sur "Afficher/Masquer composants", les données s'incrémentaient dans le tableau
+- **Cause** : La fonction `getProduitsRegroupes()` était appelée à chaque rendu sans mémorisation, causant des re-calculs inutiles et des logs de debug qui s'accumulaient
+- **Impact** : L'utilisateur voyait des données incohérentes qui augmentaient à chaque interaction
+- **Solution** : 
+  - Remplacement de la fonction par `useMemo` pour mémoriser les résultats
+  - Suppression de tous les logs de debug (`console.log`)
+  - Optimisation des dépendances des hooks React
+- **Résultat** : Le bouton fonctionne maintenant correctement sans accumulation de données
+- **Leçon** : Toujours utiliser `useMemo` pour les calculs coûteux et éviter les logs de debug en production
